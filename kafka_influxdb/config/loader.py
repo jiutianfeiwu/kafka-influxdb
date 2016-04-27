@@ -4,7 +4,7 @@ import logging
 import argparse
 import collections
 import sys
-
+import os
 
 class ObjectView(object):
     def __init__(self, d):
@@ -45,7 +45,15 @@ def load_config():
             logging.getLogger().setLevel(logging.INFO)
         elif config['verbose'] > 1:
             logging.getLogger().setLevel(logging.DEBUG)
-
+    logfile="/var/log/raysdata/kafka_influxdb.log"
+    if 'logfile' in config:
+        logfile=config['logfile']
+    print config['logfile']
+    dirPath=os.path.split(logfile)[0]
+    if not os.path.exists(dirPath):
+        os.makedirs(dirPath)
+    logging.basicConfig(filename=logfile,format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.warning("log level is %s"%config['verbose'])
     return ObjectView(config)
 
 
@@ -89,8 +97,6 @@ def parse_args(args=sys.argv[1:]):
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--kafka_host', type=str, default=argparse.SUPPRESS,
                         help="Hostname or IP of Kafka message broker (default: localhost)")
-    parser.add_argument('--kafka_port', type=int, default=argparse.SUPPRESS,
-                        help="Port of Kafka message broker (default: 9092)")
     parser.add_argument('--kafka_topic', type=str, default=argparse.SUPPRESS,
                         help="Topic for metrics (default: my_topic)")
     parser.add_argument('--kafka_group', type=str, default=argparse.SUPPRESS,

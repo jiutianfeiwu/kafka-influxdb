@@ -1,22 +1,25 @@
 ---
 kafka:
-  host: "kafka"
-  port: 9092
+  host: "127.0.0.1:9092"
   topic: "metrics"
   group: "kafka-influxdb"
+  zookeeper: "127.0.0.1:2181"
 influxdb:
-  host: "influxdb"
+  host: "127.0.0.1:8086"
   port: 8086
   user: "root"
   password: "root"
   dbname: "metrics"
+  hosts: "influxdb://usr:pwd@host1:8086,usr:pwd@host2:8086/db_name"
   use_ssl: false
-  verify_ssl: False
-  timeout: 5
-  use_udp: False
+  verify_ssl: false
+  timeout: 60
+  use_udp: false
   retention_policy: "default"
   time_precision: "s"
 encoder: "kafka_influxdb.encoder.collectd_graphite_encoder"
 benchmark: false
 buffer_size: 1000
 statistics: true
+verbose: 0
+logfile: "/var/log/raysdata/kafka_influxdb.log"

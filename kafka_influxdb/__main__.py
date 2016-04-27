@@ -1,7 +1,9 @@
 import sys
+reload(sys) 
+sys.setdefaultencoding('utf-8')
 import logging
 from .worker import Worker
-from kafka_influxdb.writer import kafka_sample_writer, influxdb_writer
+from kafka_influxdb.writer import influxdb_writer
 from kafka_influxdb.encoder import load_encoder
 from kafka_influxdb.reader import kafka_reader
 from kafka_influxdb.config import loader
@@ -14,8 +16,6 @@ __copyright__ = 'Copyright 2015, Matthias Endler under Apache License, v2.0'
 
 def create_sample_messages(config):
     logging.info("Writing sample messages for benchmark to topic: '%s'", config.kafka_topic)
-    benchmark = kafka_sample_writer.KafkaSampleWriter(config.kafka_host, config.kafka_port, config.kafka_topic)
-    benchmark.produce_messages()
 
 
 def main():
@@ -43,6 +43,7 @@ def start_consumer(config):
     reader = create_reader(config)
     writer = create_writer(config)
     encoder = load_encoder(config.encoder)
+    print "config.encoder:"+config.encoder
     client = Worker(reader, encoder, writer, config)
     client.consume()
 
@@ -50,7 +51,7 @@ def start_consumer(config):
 def create_reader(config):
     try:
         return kafka_reader.KafkaReader(config.kafka_host,
-                                        config.kafka_port,
+                                        config.kafka_zookeeper,
                                         config.kafka_group,
                                         config.kafka_topic)
     except Exception as e:
@@ -61,7 +62,8 @@ def create_reader(config):
 def create_writer(config):
     logging.info("Connecting to InfluxDB at %s:%s", config.influxdb_host, config.influxdb_port)
     try:
-        return influxdb_writer.InfluxDBWriter(config.influxdb_host,
+        return influxdb_writer.InfluxDBWriter(config.influxdb_hosts,
+                                              config.influxdb_host,
                                               config.influxdb_port,
                                               config.influxdb_user,
                                               config.influxdb_password,

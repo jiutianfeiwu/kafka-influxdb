@@ -14,7 +14,6 @@ requires = [
     "certifi",
     "funcsigs",
     "influxdb",
-    "kafka-python",
     "mock",
     "nose",
     "pbr",
@@ -23,7 +22,12 @@ requires = [
     "PyYAML",
     "requests",
     "virtualenv",
-    "wheel"
+    "wheel",
+    "pymongo",
+    "pykafka==2.2.1",
+    'kazoo',
+    'tabulate',
+    'gevent==1.1'
 ]
 
 test_requires = [

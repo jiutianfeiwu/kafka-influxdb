@@ -6,7 +6,7 @@ Kafka-InfluxDB
 | A Kafka consumer for InfluxDB written in Python.
 | All messages sent to Kafka on a certain topic will be relayed to Influxdb.
 | Supports InfluxDB 0.9.x. For InfluxDB 0.8.x support, check out the `0.3.0 tag <https://github.com/mre/kafka-influxdb/tree/v0.3.0>`__.
-
+| Supports cluster
 
 Use cases
 ---------
@@ -82,7 +82,7 @@ Input formats
 ~~~~~~~~~~~~~
 
 -  `Collectd Graphite ASCII format <https://collectd.org/wiki/index.php/Graphite>`_:
-::
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
    mydatacenter.myhost.load.load.shortterm 0.45 1436357630
 
@@ -113,7 +113,7 @@ Output formats
 ~~~~~~~~~~~~~~
 
 -  `InfluxDB 0.9.x line protocol format <https://influxdb.com/docs/v0.9/write_protocols/line.html>`_:
-::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
    load_load_shortterm,datacenter=mydatacenter,host=myhost value="0.45" 1436357630
 
@@ -129,29 +129,33 @@ Configuration
 ========================================================= =================================================================================================
 Option                                                    Description
 ========================================================= =================================================================================================
-``-h``, ``--help``                                        Show help message and exit
-``--kafka_host KAFKA_HOST``                               Hostname or IP of Kafka message broker (default: localhost)
-``--kafka_port KAFKA_PORT``                               Port of Kafka message broker (default: 9092)
-``--kafka_topic KAFKA_TOPIC``                             Topic for metrics (default: my_topic)
-``--kafka_group KAFKA_GROUP``                             Kafka consumer group (default: my_group)
-``--influxdb_host INFLUXDB_HOST``                         InfluxDB hostname or IP (default: localhost)
-``--influxdb_port INFLUXDB_PORT``                         InfluxDB API port (default: 8086)
-``--influxdb_user INFLUXDB_USER``                         InfluxDB username (default: root)
-``--influxdb_password INFLUXDB_PASSWORD``                 InfluxDB password (default: root)
-``--influxdb_dbname INFLUXDB_DBNAME``                     InfluxDB database to write metrics into (default: metrics)
-``--influxdb_use_ssl``                                    Use SSL connection for InfluxDB (default: False)
-``--influxdb_verify_ssl``                                 Verify the SSL certificate before connecting (default: False)
-``--influxdb_timeout INFLUXDB_TIMEOUT``                   Max number of seconds to establish a connection to InfluxDB (default: 5)
-``--influxdb_use_udp``                                    Use UDP connection for InfluxDB (default: False)
-``--influxdb_retention_policy INFLUXDB_RETENTION_POLICY`` Retention policy for incoming metrics (default: default)
-``--influxdb_time_precision INFLUXDB_TIME_PRECISION``     Precision of incoming metrics. Can be one of 's', 'm', 'ms', 'u' (default: s)
-``--encoder ENCODER``                                     Input encoder which converts an incoming message to dictionary (default: collectd_graphite_encoder)
-``--buffer_size BUFFER_SIZE``                             Maximum number of messages that will be collected before flushing to the backend (default: 1000)
-``-c CONFIGFILE``, ``--configfile CONFIGFILE``            Configfile path (default: None)
-``-s``, ``--statistics``                                  Show performance statistics (default: True)
-``-b``, ``--benchmark``                                   Run benchmark (default: False)
-``-v``, ``--verbose``                                     Set verbosity level. Increase verbosity by adding a v: -v -vv -vvv (default: 0)
-``--version``                                             Show version
+``kafka:``                                                       
+``  host: "127.0.0.1:9092"``                                示例：'mykafkaClusterNode1.com:9092,mykafkaClusterNode2.com:9092'
+``  topic: "metrics"``
+``  group: "kafka-influxdb"``
+``  zookeeper: "127.0.0.1:2181"``                           示例：    'myZkClusterNode1.com:2181,myZkClusterNode2.com:2181'
+``influxdb:``
+``  host: "influxdb"``                                      示例：     'myinfluxdbNode1.com:8086,myinfluxdbNode2.com:8086'
+``  port: 8086``
+``  user: "root"``
+``  password: "root"``
+``  dbname: "metrics"``
+``  hosts``                                                 influxdb://usr:pwd@host1:8086,usr:pwd@host2:8086/db_name
+``  use_ssl: false``
+``  verify_ssl: False``
+``  timeout: 5``
+``  use_udp: False``
+``  retention_policy: "default"``
+``  time_precision: "s"``
+``encoder: "kafka_influxdb.encoder.echo_encoder"``          kafka_influxdb.encoder.collectd_graphite_encoder
+`` ``                                                       kafka_influxdb.encoder.collectd_graphite_encoder_original
+`` ``                                                       kafka_influxdb.encoder.echo_encoder  不做数据处理
+`` ``                                                       kafka_influxdb.encoder.echo_telegraf_encoder  接受telegraf数据
+``benchmark: false``
+``buffer_size: 1000``
+``statistics: false``
+``verbose: 0``                                              1 、info  2、debug
+``logfile: "/var/log/raysdata/kafka_influxdb.log"``          "/var/log/raysdata/kafka_influxdb.log"
 ========================================================= =================================================================================================
 
 

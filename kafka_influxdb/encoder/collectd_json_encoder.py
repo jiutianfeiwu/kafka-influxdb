@@ -34,7 +34,7 @@ class Encoder(object):
     """
     def encode(self, msg):
         measurements = []
-
+        print  "msg:"+msg
         for line in msg.decode().split("\n"):
             try:
                 # Set flag for float precision to get the same
@@ -43,6 +43,7 @@ class Encoder(object):
             except ValueError as e:
                 logging.debug("Error in encoder: %s", e)
                 continue
+            print  "json:"+json_object
             for entry in json_object:
                 measurement = [entry['plugin']]
                 # Check if plugin_instance is set and not empty

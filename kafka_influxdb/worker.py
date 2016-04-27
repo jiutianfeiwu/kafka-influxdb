@@ -26,9 +26,18 @@ class Worker(object):
         self.start_time = time.time()
         try:
             for index, raw_message in enumerate(self.reader.read(), 1):
-                self.buffer.extend(self.encoder.encode(raw_message))
-                if index % self.config.buffer_size == 0:
-                    self.flush()
+                try:
+                    logging.debug("raw_message:%s",str(raw_message))
+                    ms=self.encoder.encode(raw_message)
+                    if isinstance(ms,str):
+                        self.buffer.append(ms)
+                    else:   
+                        self.buffer.extend(ms)
+                    if index % self.config.buffer_size == 0:
+                        self.flush()
+                except Exception as e:
+                    logging.error(e)
+                    logging.error(raw_message)
         except KeyboardInterrupt:
             logging.info("Shutdown")
 
@@ -36,11 +45,7 @@ class Worker(object):
         """
         Initialize the InfluxDB database if it is not already there
         """
-        try:
-            logging.info("Creating InfluxDB database if not exists: %s", self.config.influxdb_dbname)
-            self.writer.create_database(self.config.influxdb_dbname)
-        except Exception as e:
-            logging.info(e)
+        pass
 
     def flush(self):
         """ Flush values with writer """
@@ -55,7 +60,7 @@ class Worker(object):
     def show_statistics(self):
         delta = time.time() - self.start_time
         msg_per_sec = self.config.buffer_size / delta
-        print("Flushing output buffer. {0:.2f} messages/s".format(msg_per_sec))
+        #print("Flushing output buffer. {0:.2f} messages/s".format(msg_per_sec))
         # Reset timer
         self.start_time = time.time()
 

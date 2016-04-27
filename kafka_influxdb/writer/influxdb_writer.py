@@ -3,6 +3,7 @@
 import logging
 import influxdb
 
+from influxdb import InfluxDBClusterClient
 
 class InfluxDBWriter(object):
     DEFAULT_HEADERS = {
@@ -11,6 +12,7 @@ class InfluxDBWriter(object):
     }
 
     def __init__(self,
+                 hosts,
                  host,
                  port,
                  user,
@@ -36,7 +38,8 @@ class InfluxDBWriter(object):
         self.use_udp = use_udp
         self.retention_policy = retention_policy
         self.time_precision = time_precision
-
+        self.hosts=hosts
+        # self.params = {'db': self.dbname}
         self.params = {'db': self.dbname}
         self.headers = self.DEFAULT_HEADERS
         if time_precision:
@@ -44,8 +47,7 @@ class InfluxDBWriter(object):
         if retention_policy:
             self.params['rp'] = retention_policy
 
-        logging.info("Connecting to InfluxDB at %s:%s (SSL: %r, UDP: %r)", host, port, use_ssl, use_udp)
-        self.client = self.create_client()
+        self.client = self.create_cluster()
         logging.info("Creating database %s if not exists", dbname)
 
     def create_client(self):
@@ -69,7 +71,24 @@ class InfluxDBWriter(object):
         :param dbname:
         """
         self.client.create_database(dbname)
-
+        
+    @staticmethod
+    def getHosts(host):
+        ps=host.split(",")
+        rs=[]
+        for p in ps:
+            h,port=p.split(":")
+            rs.append((h,int(port)))
+        return rs
+        
+    def create_cluster(self):
+        logging.info("connecting to influxdb at :%s",self.hosts)
+        self.client = InfluxDBClusterClient.from_DSN(self.hosts,
+                               ssl= self.use_ssl,
+                               verify_ssl=self.verify_ssl,
+                               timeout=self.timeout,
+                               use_udp=self.use_udp)
+        return self.client
     def write(self, msg, params=None, expected_response_code=204):
         """
         Write messages to InfluxDB database.
@@ -79,10 +98,11 @@ class InfluxDBWriter(object):
         :param params:
         :param msg:
         """
+        #print "msg:"+"\n".join(msg)
         if not params:
             # Use defaults
             params = self.params
-
+            
         try:
             self.client.request(url='write',
                                 method='POST',
@@ -91,8 +111,10 @@ class InfluxDBWriter(object):
                                 expected_response_code=expected_response_code,
                                 headers=self.headers
                                 )
+            logging.debug("write data msg: %s", msg)
         except Exception as e:
             logging.warning("Cannot write data points: %s", e)
+            logging.warning("Cannot write data msg: %s", "\n".join(msg))
             return False
         return True
 
